@@ -85,19 +85,25 @@ def train_stage1(config: dict,
 
 
 if __name__ == '__main__':
-    # load config
+    # 加载配置文件
     args = load_args()
     config = load_yaml_param_settings(args.config)
 
+    # 遍历数据集名称列表
     for dataset_name in args.dataset_names:
-        # data pipeline
+        # 数据管道
         batch_size = config['dataset']['batch_sizes']['stage1']
+        # 根据是否使用自定义数据集，选择不同的数据集导入器和数据管道构建函数
         if not args.use_custom_dataset:
+            # 使用 UCR 数据集导入器
             dataset_importer = DatasetImporterUCR(dataset_name, **config['dataset'])
+            # 构建训练和测试数据管道
             train_data_loader, test_data_loader = [build_data_pipeline(batch_size, dataset_importer, config, kind) for kind in ['train', 'test']]
         else:
+            # 使用自定义数据集导入器
             dataset_importer = DatasetImporterCustom(**config['dataset'])
+            # 构建自定义训练和测试数据管道
             train_data_loader, test_data_loader = [build_custom_data_pipeline(batch_size, dataset_importer, config, kind) for kind in ['train', 'test']]
 
-        # train
+        # 训练阶段1的模型
         train_stage1(config, dataset_name, train_data_loader, test_data_loader, args.gpu_device_ind)
